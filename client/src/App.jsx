@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import ChatTab from './components/ChatTab';
+import LandscapeTab from './components/LandscapeTab';
 import FlowMapTab from './components/FlowMapTab';
 import FioriLaunchpadTab from './components/FioriLaunchpadTab';
 import VkoaTab from './components/VkoaTab';
@@ -21,6 +22,7 @@ export default function App() {
       <Header activeTab={activeTab} setActiveTab={setActiveTab} />
       <main>
         {activeTab === 'chat' && <ChatTab />}
+        {activeTab === 'landscape' && <LandscapeTab />}
         {activeTab === 'flowmap' && <FlowMapTab />}
         {activeTab === 'fiori' && <FioriLaunchpadTab />}
         {activeTab === 'vkoa' && <VkoaTab />}
