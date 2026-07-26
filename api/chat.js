@@ -26,13 +26,14 @@ export default async function handler(req, res) {
           messages: [
             {
               role: "system",
-              content: `You are an expert Senior SAP S/4HANA & ECC 6.0 Lead Functional & Technical Consultant specializing in FICO (Financial Accounting & Controlling), SD (Sales & Distribution), and MM (Materials Management).
-Provide accurate, structured, and professional answers for SAP queries. Include:
-1. Exact SPRO Customizing navigation paths (e.g. SPRO -> Financial Accounting -> ...).
-2. Key T-Codes (e.g., FS00, FB50, VKOA, OBYC, OB52, SE16N, FAGLB03).
-3. Relevant S/4HANA tables (ACDOCA, BKPF, BSEG, VBRK, EKKO, KNA1).
-4. Accounting Posting Keys (01 Debit Customer, 50 Credit Revenue, 89 Goods Issue, 31 Vendor Credit, etc.) and Journal Entry flow.
-Format your responses nicely with HTML tags like <strong>, <code>, <br>, <ul>, <li>, and <pre> for code snippets.`
+              content: `You are a friendly, warm, and highly encouraging Senior SAP S/4HANA & ECC 6.0 Lead Functional Consultant Copilot!
+Your personality is approachable, helpful, conversational, and mixed-friendly: you make complex SAP concepts easy to understand while delivering exact technical accuracy.
+When answering:
+1. Greet the user warmly and enthusiastically.
+2. Provide exact SPRO Customizing navigation paths (e.g. SPRO -> Financial Accounting -> ...).
+3. Include relevant T-Codes (e.g. FS00, FB50, VKOA, OBYC, OB52, SE16N), S/4HANA tables (ACDOCA, BKPF, BSEG, VBRK), and Accounting Keys/Posting Keys.
+4. Conclude with an encouraging, friendly follow-up question or offer to help further!
+Use clean HTML formatting like <strong>, <code>, <br>, <ul>, <li>, and <pre>.`
             },
             {
               role: "user",
@@ -62,63 +63,51 @@ Format your responses nicely with HTML tags like <strong>, <code>, <br>, <ul>, <
     }
   }
 
-  // Fallback intelligent knowledge engine
-  const q = question.toLowerCase();
+  // Friendly Fallback Knowledge Engine
+  const q = question.toLowerCase().trim();
   let fallbackAnswer = "";
 
-  if (q.includes('vkoa') || q.includes('revenue account')) {
-    fallbackAnswer = `<strong>🔄 SD-FI Account Determination (VKOA):</strong><br>
+  if (q === 'hi' || q === 'hello' || q === 'hey' || q.includes('who are you')) {
+    fallbackAnswer = `👋 <strong>Hello there! Great to meet you!</strong> 😊<br><br>I am your friendly <strong>SAP FICO & SD Copilot</strong>. I'm here to help you navigate SPRO customizing, resolve error codes, simulate VKOA/OBYC account determination, or generate RICEF specs!<br><br>How can I assist you on your SAP journey today? Feel free to type or use voice chat! 🎙️`;
+  } else if (q.includes('thank') || q.includes('thanks')) {
+    fallbackAnswer = `🌟 <strong>You're very welcome!</strong> Happy to help anytime! 😊<br><br>Let me know if you have more questions about SAP S/4HANA, T-Codes, or customizing! Have a fantastic day! 🚀`;
+  } else if (q.includes('vkoa') || q.includes('revenue account')) {
+    fallbackAnswer = `😊 <strong>No problem at all! Let's break down SD-FI Revenue Account Determination (VKOA) together:</strong><br><br>
 <strong>SPRO Path:</strong> <code>SPRO -> Sales and Distribution -> Basic Functions -> Account Assignment/Costing -> Revenue Account Determination -> Assign G/L Accounts</code><br><br>
-<strong>Key Determination Table Access Sequence (Tables 001 - 005):</strong>
+<strong>Key Determination Fields (Table C001):</strong>
 <ul>
-  <li><strong>Application:</strong> V (Sales/Distribution)</li>
-  <li><strong>Condition Type:</strong> KOFI (Account Determination) / KOFK (with CO)</li>
+  <li><strong>Application:</strong> V (Sales & Distribution)</li>
+  <li><strong>Condition Type:</strong> KOFI (Account Determination)</li>
   <li><strong>Chart of Accounts:</strong> INT / CAUS</li>
-  <li><strong>Sales Org:</strong> 1000 / 2000</li>
-  <li><strong>Cust. Acct Assign Group:</strong> 01 (Domestic) / 02 (Export)</li>
-  <li><strong>Mat. Acct Assign Group:</strong> 01 (Trading Goods) / 02 (Finished Goods)</li>
-  <li><strong>Account Key:</strong> ERL (Revenue), ERS (Discounts), MWS (Output Tax)</li>
+  <li><strong>Sales Org:</strong> 1000</li>
+  <li><strong>Customer Acct Group:</strong> 01 (Domestic)</li>
+  <li><strong>Account Key:</strong> ERL (Sales Revenue) ➡️ G/L 400000</li>
 </ul>
-<strong>Resulting Posting:</strong> Billing Document (VF01) automatically posts Debit Customer (PK 01) and Credit Revenue G/L Account (PK 50).`;
+<strong>Resulting Posting:</strong> Billing Document (VF01) automatically posts Debit Customer (PK 01) & Credit Revenue (PK 50).<br><br>Need me to simulate a specific billing line for you? Just let me know! 🚀`;
   } else if (q.includes('obyc') || q.includes('goods receipt') || q.includes('inventory')) {
-    fallbackAnswer = `<strong>📦 MM-FI Account Determination (OBYC):</strong><br>
-<strong>SPRO Path:</strong> <code>SPRO -> Materials Management -> Valuation and Account Assignment -> Account Determination -> Account Determination Without Wizard -> Configure Automatic Postings</code><br><br>
-<strong>Key Transaction Keys:</strong>
+    fallbackAnswer = `📦 <strong>Great question! MM-FI Automatic Posting (OBYC) is easy once you see the pattern:</strong><br><br>
+<strong>SPRO Path:</strong> <code>SPRO -> Materials Management -> Valuation and Account Assignment -> Account Determination -> Configure Automatic Postings</code><br><br>
+<strong>Key Transaction Keys to Remember:</strong>
 <ul>
   <li><code>BSX</code> - Inventory Posting (Debited on Goods Receipt MVT 101)</li>
-  <li><code>WRX</code> - GR/IR Clearing Account (Credited on GR, Debited on IR in MIRO)</li>
-  <li><code>GBB</code> - Offsetting Entry for Inventory Postings (VBR: Goods Issue for Sales, VAX: Goods Issue w/o Account Assignment, ZZZ: Scrapping)</li>
-  <li><code>PRD</code> - Price Differences (Variance between PO price and Material Moving Average/Standard Price)</li>
-  <li><code>UMB</code> - Gain/Loss from Revaluation (T-Code MR21)</li>
-</ul>`;
+  <li><code>WRX</code> - GR/IR Clearing Account (Credited on Goods Receipt)</li>
+  <li><code>GBB</code> - Offsetting Entry for Inventory Postings (COGS / Consumption)</li>
+  <li><code>PRD</code> - Price Differences</li>
+</ul>
+Would you like to test an OBYC simulation in our simulator tab? 😊`;
   } else if (q.includes('ob52') || q.includes('period closed') || q.includes('f5 063')) {
-    fallbackAnswer = `<strong>⚠️ OB52 Posting Period Maintenance:</strong><br>
-<strong>Error Code:</strong> F5 063 / F5 201 "Posting period 0XX is not open"<br><br>
-<strong>Resolution Steps:</strong>
+    fallbackAnswer = `⚠️ <strong>Don't worry! OB52 Posting Period errors are super quick to fix:</strong><br><br>
+<strong>Steps to resolve F5 063:</strong>
 <ol>
-  <li>Execute T-Code <strong>OB52</strong> (or SPRO -> Financial Accounting -> Financial Accounting Global Settings -> Document -> Posting Periods -> Open and Close Posting Periods).</li>
-  <li>Locate your Posting Period Variant (e.g. 1000).</li>
+  <li>Open T-Code <strong>OB52</strong> (or SPRO -> Financial Accounting -> Document -> Posting Periods -> Open and Close Posting Periods).</li>
+  <li>Find your Posting Period Variant (e.g. 1000).</li>
   <li>Update <strong>From Period 1</strong> to current month (e.g., 7 / 2026).</li>
-  <li>Ensure Account Type <code>+</code> (Valid for all account types) and Account Type <code>S</code> (G/L accounts) have open period ranges.</li>
-  <li>Save transport request and re-run posting (T-Code FB50 / MIRO / VF01).</li>
-</ol>`;
-  } else if (q.includes('acdoca') || q.includes('universal journal') || q.includes('s/4hana')) {
-    fallbackAnswer = `<strong>📊 Universal Journal (ACDOCA) Architecture in S/4HANA:</strong><br>
-S/4HANA merges traditional separate SAP tables into a single line-item table <code>ACDOCA</code>:<br>
-<ul>
-  <li><strong>Replaced / Combined Tables:</strong> BSEG (FI), COEP (Controlling), ANEP (Asset Accounting), MLIT (Material Ledger), FAGLLEX (New G/L Totals).</li>
-  <li><strong>Key Fields:</strong> <code>RCLNT</code> (Client), <code>RLDNR</code> (Ledger 0L), <code>BUKRS</code> (Company Code), <code>GJAHR</code> (Fiscal Year), <code>BELNR</code> (Doc No), <code>DOCLN</code> (Line item), <code>RACCT</code> (G/L Acct), <code>PRCTR</code> (Profit Center), <code>HSL</code> (Amount in Local Curr).</li>
-  <li><strong>Header Table:</strong> <code>BKPF</code> (Accounting Document Header) links to <code>ACDOCA</code> via BELNR & GJAHR.</li>
-</ul>`;
+  <li>Ensure Account Types <code>+</code> and <code>S</code> are open.</li>
+  <li>Save and re-try your posting!</li>
+</ol>
+Need help with any other error code? I'm right here! 😊`;
   } else {
-    fallbackAnswer = `<strong>💡 SAP Copilot Functional Guidance:</strong><br>
-For query: <em>"${question}"</em><br><br>
-<strong>Recommended Next Steps:</strong>
-<ul>
-  <li>Check master data via <strong>FS00</strong> (G/L Master), <strong>BP</strong> (Business Partner / Customer / Vendor), or <strong>MM03</strong> (Material Master).</li>
-  <li>Verify configuration in <strong>SPRO</strong> or direct T-Codes: <strong>VKOA</strong> (SD Revenue), <strong>OBYC</strong> (MM Postings), <strong>OB52</strong> (Posting Periods), <strong>OKKP</strong> (Controlling Area).</li>
-  <li>Inspect table line items via <strong>SE16N</strong> / <strong>SE16H</strong> on tables <code>ACDOCA</code>, <code>BKPF</code>, <code>BSEG</code>, <code>VBRK</code>, or <code>EKKO</code>.</li>
-</ul>`;
+    fallbackAnswer = `💡 <strong>Happy to help!</strong><br><br>For your query <em>"${question}"</em>, here are recommended T-Codes: <strong>FS00</strong> (GL Master), <strong>FB50</strong> (GL Postings), <strong>VKOA</strong> (SD Revenue), or <strong>OBYC</strong> (MM Postings)!<br><br>Feel free to ask another question or click any preset below! 😊`;
   }
 
   res.status(200).json({ answer: fallbackAnswer, timestamp: new Date().toISOString() });

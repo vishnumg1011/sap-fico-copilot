@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// 1. AI Knowledge Assistant Chat API
+// 1. AI Knowledge Assistant Chat API (Friendly Tone)
 router.post('/chat', async (req, res) => {
   const { question } = req.body;
   if (!question) return res.status(400).json({ error: 'Question is required' });
@@ -23,7 +23,7 @@ router.post('/chat', async (req, res) => {
           messages: [
             {
               role: "system",
-              content: `You are an expert Senior SAP S/4HANA & ECC 6.0 Lead Functional & Technical Consultant specializing in FICO, SD, and MM. Provide accurate, structured, and professional answers for SAP queries with SPRO navigation paths, T-Codes, tables, and accounting keys.`
+              content: `You are a friendly, warm, encouraging Senior SAP Lead Functional Consultant Copilot! Respond warmly, simplify complex SAP topics, and provide exact SPRO paths, T-Codes, and table details.`
             },
             { role: "user", content: question }
           ]
@@ -50,19 +50,19 @@ router.post('/chat', async (req, res) => {
     }
   }
 
-  const q = question.toLowerCase();
+  const q = question.toLowerCase().trim();
   let response = '';
 
-  if (q.includes('vkoa') || q.includes('revenue')) {
-    response = `<strong>🔄 SD-FI Account Determination (VKOA):</strong><br>Nav Path: <code>SPRO -> Sales & Distribution -> Basic Functions -> Account Assignment -> Revenue Account Determination -> Assign G/L Accounts</code><br>Key Determination Parameters: Application V, Chart of Accounts, Sales Org, Cust. Acct Grp, Mat. Acct Grp, Account Key (ERL/ERS).`;
+  if (q === 'hi' || q === 'hello' || q === 'hey' || q.includes('who are you')) {
+    response = `👋 <strong>Hello there! Great to meet you!</strong> 😊<br><br>I am your friendly <strong>SAP FICO & SD Copilot</strong>. I'm here to help you navigate SPRO customizing, resolve error codes, simulate VKOA/OBYC account determination, or generate RICEF specs!<br><br>How can I assist you today? 😊`;
+  } else if (q.includes('vkoa') || q.includes('revenue')) {
+    response = `<strong>🔄 SD-FI Account Determination (VKOA):</strong><br>Nav Path: <code>SPRO -> Sales & Distribution -> Basic Functions -> Account Assignment -> Revenue Account Determination -> Assign G/L Accounts</code><br>Key Parameters: Application V, Chart of Accounts, Sales Org, Cust. Acct Grp, Mat. Acct Grp, Account Key (ERL/ERS). 😊`;
   } else if (q.includes('obyc') || q.includes('goods receipt') || q.includes('bsx')) {
-    response = `<strong>📦 MM-FI Account Determination (OBYC):</strong><br>Key Posting Transactions: <code>BSX</code> (Inventory Posting), <code>WRX</code> (GR/IR Clearing Account), <code>GBB</code> (Inventory Offsetting/COGS).`;
+    response = `<strong>📦 MM-FI Account Determination (OBYC):</strong><br>Key Posting Transactions: <code>BSX</code> (Inventory Posting), <code>WRX</code> (GR/IR Clearing Account), <code>GBB</code> (Inventory Offsetting/COGS). 😊`;
   } else if (q.includes('ob52') || q.includes('period')) {
-    response = `<strong>⚠️ OB52 Posting Period Error:</strong><br>Run T-Code <strong>OB52</strong>, locate your Posting Period Variant, update From Period 1 to current period (e.g. 07/2026), and verify account types '+' and 'S' are open.`;
-  } else if (q.includes('acdoca') || q.includes('bseg')) {
-    response = `<strong>📊 Universal Journal (ACDOCA):</strong><br>In S/4HANA, <code>ACDOCA</code> merges FI, CO, AA, and ML into a single line item repository.`;
+    response = `<strong>⚠️ OB52 Posting Period Error:</strong><br>Run T-Code <strong>OB52</strong>, locate your Posting Period Variant, update From Period 1 to current period (e.g. 07/2026), and verify account types '+' and 'S' are open. 😊`;
   } else {
-    response = `<strong>💡 SAP Copilot Response:</strong><br>For your query <em>"${question}"</em>, explore core T-Codes: <strong>FS00</strong> (GL Master), <strong>FB50</strong> (GL Postings), <strong>VKOA</strong> (SD Revenue), <strong>OBYC</strong> (MM Postings)!`;
+    response = `<strong>💡 SAP Copilot Response:</strong><br>For your query <em>"${question}"</em>, explore core T-Codes: <strong>FS00</strong> (GL Master), <strong>FB50</strong> (GL Postings), <strong>VKOA</strong> (SD Revenue), <strong>OBYC</strong> (MM Postings)! 😊`;
   }
 
   res.json({ answer: response, timestamp: new Date().toISOString() });
