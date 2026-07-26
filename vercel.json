@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd client && npm install && npm run build",
+  "outputDirectory": "client/dist",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/chat", "destination": "/api/chat" },
+    { "source": "/api/vkoa/simulate", "destination": "/api/vkoa/simulate" },
+    { "source": "/api/spec/generate", "destination": "/api/spec/generate" },
+    { "source": "/api/errors", "destination": "/api/errors" },
+    { "source": "/api/tables/acdoca", "destination": "/api/tables/acdoca" }
+  ]
+}
