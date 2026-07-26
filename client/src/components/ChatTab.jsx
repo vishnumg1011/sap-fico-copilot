@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendChatMessage } from '../services/api';
-import { Send, Bot, User, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
 export default function ChatTab() {
   const [messages, setMessages] = useState([
@@ -11,7 +11,11 @@ export default function ChatTab() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speakingIdx, setSpeakingIdx] = useState(null);
+
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const presets = [
     'How to configure SD-FI Revenue Account Determination (VKOA)?',
@@ -24,9 +28,85 @@ export default function ChatTab() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Setup Web Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+
+      rec.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0])
+          .map((result) => result.transcript)
+          .join('');
+        setInput(transcript);
+      };
+
+      rec.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) {
+      alert('Voice Speech Recognition is not supported in this browser. Please try Chrome or Edge.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  const handleSpeechOutput = (text, idx) => {
+    if (!('speechSynthesis' in window)) {
+      alert('Text to speech is not supported in this browser.');
+      return;
+    }
+
+    if (speakingIdx === idx) {
+      window.speechSynthesis.cancel();
+      setSpeakingIdx(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    // Strip HTML tags for clean text-to-speech
+    const cleanText = text.replace(/<[^>]*>?/gm, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    utterance.onend = () => setSpeakingIdx(null);
+    utterance.onerror = () => setSpeakingIdx(null);
+
+    setSpeakingIdx(idx);
+    window.speechSynthesis.speak(utterance);
+  };
+
   const handleSend = async (textToSend) => {
     const q = textToSend || input;
     if (!q.trim() || loading) return;
+
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
 
     setMessages((prev) => [...prev, { sender: 'user', text: `<strong>You:</strong> ${q}` }]);
     if (!textToSend) setInput('');
@@ -58,18 +138,45 @@ export default function ChatTab() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Sparkles size={18} style={{ color: 'var(--color-cyan)' }} />
-          <h3 style={{ fontSize: '1.05rem', color: 'var(--color-cyan)' }}>AI SAP Knowledge Assistant</h3>
+          <h3 style={{ fontSize: '1.05rem', color: 'var(--color-cyan)' }}>AI Voice & Text SAP Assistant</h3>
         </div>
-        <span className="badge badge-cyan">S/4HANA 2023 & ECC 6.0 (EHP 8)</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {isListening && (
+            <span className="badge badge-amber" style={{ animation: 'pulse 1.5s infinite' }}>
+              🎙️ Listening...
+            </span>
+          )}
+          <span className="badge badge-cyan">S/4HANA 2023 & ECC 6.0</span>
+        </div>
       </div>
 
       <div className="chat-messages">
         {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`msg ${msg.sender === 'user' ? 'msg-user' : 'msg-bot'}`}
-            dangerouslySetInnerHTML={{ __html: msg.text }}
-          />
+          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start', gap: '0.3rem' }}>
+            <div
+              className={`msg ${msg.sender === 'user' ? 'msg-user' : 'msg-bot'}`}
+              dangerouslySetInnerHTML={{ __html: msg.text }}
+            />
+            {msg.sender === 'bot' && (
+              <button
+                onClick={() => handleSpeechOutput(msg.text, idx)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: speakingIdx === idx ? 'var(--color-cyan)' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  marginLeft: '0.5rem'
+                }}
+              >
+                {speakingIdx === idx ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                <span>{speakingIdx === idx ? 'Stop Speaking' : 'Read Aloud'}</span>
+              </button>
+            )}
+          </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -83,14 +190,28 @@ export default function ChatTab() {
       </div>
 
       <div className="chat-input-bar">
+        <button
+          className={`btn ${isListening ? 'btn-mic-active' : ''}`}
+          onClick={toggleListening}
+          style={{
+            background: isListening ? 'rgba(255, 179, 0, 0.25)' : 'rgba(255,255,255,0.06)',
+            color: isListening ? 'var(--color-amber)' : '#fff',
+            border: isListening ? '1px solid var(--color-amber)' : '1px solid var(--border-color)'
+          }}
+          title={isListening ? 'Stop Voice Input' : 'Start Voice Input (Speak your question)'}
+        >
+          {isListening ? <MicOff size={18} /> : <Mic size={18} />}
+        </button>
+
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask your SAP functional question (e.g. SPRO path for VKOA, OBYC transaction keys)..."
+          placeholder={isListening ? 'Listening... Speak your SAP question now' : 'Ask or speak your SAP question (e.g. SPRO path for VKOA, OBYC transaction keys)...'}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           style={{ flex: 1 }}
         />
+
         <button className="btn" onClick={() => handleSend()} disabled={loading}>
           <Send size={16} />
           <span>{loading ? 'Thinking...' : 'Ask Copilot'}</span>
