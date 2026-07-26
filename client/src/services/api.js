@@ -20,6 +20,16 @@ export async function simulateVkoa(data) {
   return res.json();
 }
 
+export async function simulateObyc(data) {
+  const res = await fetch(`${API_BASE}/obyc/simulate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('OBYC Simulation API failed');
+  return res.json();
+}
+
 export async function generateSpec(data) {
   const res = await fetch(`${API_BASE}/spec/generate`, {
     method: 'POST',

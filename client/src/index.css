@@ -41,7 +41,7 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: rgba(11, 15, 23, 0.9);
+  background: rgba(11, 15, 23, 0.95);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
@@ -57,8 +57,8 @@ header {
 }
 
 .logo {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   background: linear-gradient(135deg, var(--color-blue), var(--color-cyan));
   border-radius: 10px;
   display: flex;
@@ -66,7 +66,8 @@ header {
   justify-content: center;
   font-weight: 800;
   color: #090d16;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
 }
 
 .brand-title {
@@ -103,19 +104,20 @@ header {
 
 nav {
   display: flex;
-  gap: 0.4rem;
-  background: rgba(17, 24, 39, 0.6);
+  gap: 0.3rem;
+  background: rgba(17, 24, 39, 0.7);
   padding: 0.3rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
+  flex-wrap: wrap;
 }
 
 .nav-btn {
-  padding: 0.55rem 1rem;
+  padding: 0.55rem 0.85rem;
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
@@ -134,17 +136,18 @@ nav {
   color: #fff;
   background: linear-gradient(135deg, rgba(0, 163, 255, 0.25), rgba(0, 229, 255, 0.15));
   border: 1px solid rgba(0, 229, 255, 0.4);
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
 }
 
 main {
-  max-width: 1350px;
+  max-width: 1400px;
   margin: 2rem auto;
   padding: 0 1.5rem;
 }
 
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   gap: 1.5rem;
 }
 
@@ -152,7 +155,7 @@ main {
 .chat-box {
   display: flex;
   flex-direction: column;
-  height: 640px;
+  height: 680px;
 }
 
 .chat-messages {
@@ -165,11 +168,11 @@ main {
 }
 
 .msg {
-  max-width: 82%;
-  padding: 0.9rem 1.1rem;
+  max-width: 85%;
+  padding: 1rem 1.2rem;
   border-radius: 12px;
   font-size: 0.9rem;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .msg-user {
@@ -204,6 +207,7 @@ input[type="text"], select, textarea, input[type="number"] {
 
 input[type="text"]:focus, select:focus, textarea:focus {
   border-color: var(--color-cyan);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
 }
 
 .btn {
@@ -237,7 +241,7 @@ input[type="text"]:focus, select:focus, textarea:focus {
   white-space: nowrap;
 }
 
-.chip:hover {
+.chip:hover, .chip.active {
   border-color: var(--color-cyan);
   color: var(--color-cyan);
 }

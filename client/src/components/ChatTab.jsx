@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendChatMessage } from '../services/api';
-import { Send } from 'lucide-react';
+import { Send, Bot, User, Sparkles } from 'lucide-react';
 
 export default function ChatTab() {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: `👋 <strong>Welcome Functional Consultant!</strong> I am your SAP FICO & SD Copilot.<br><br>Ask me anything about <strong>SPRO customizing</strong>, <strong>VKOA SD-FI revenue account determination</strong>, <strong>OBYC MM account determination</strong>, <strong>SAP error codes (OB52, F5 063)</strong>, or <strong>ACDOCA Universal Journal tables</strong>.`
+      text: `👋 <strong>Welcome Functional Consultant!</strong> I am your SAP S/4HANA & ECC 6.0 Enterprise Copilot.<br><br>Ask me anything about <strong>SPRO customizing</strong>, <strong>VKOA SD-FI revenue account determination</strong>, <strong>OBYC MM account determination</strong>, <strong>SAP production errors (OB52, F5 063, M8 008)</strong>, or <strong>ACDOCA Universal Journal tables & HANA SQL</strong>.`
     }
   ]);
   const [input, setInput] = useState('');
@@ -52,12 +52,15 @@ export default function ChatTab() {
           padding: '1rem 1.5rem',
           borderBottom: '1px solid var(--border-color)',
           display: 'flex',
-          justify: 'space-between',
+          justifyContent: 'space-between',
           alignItems: 'center'
         }}
       >
-        <h3 style={{ fontSize: '1.05rem', color: 'var(--color-cyan)' }}>AI SAP Knowledge Assistant</h3>
-        <span className="badge badge-cyan">S/4HANA & ECC 6.0</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Sparkles size={18} style={{ color: 'var(--color-cyan)' }} />
+          <h3 style={{ fontSize: '1.05rem', color: 'var(--color-cyan)' }}>AI SAP Knowledge Assistant</h3>
+        </div>
+        <span className="badge badge-cyan">S/4HANA 2023 & ECC 6.0 (EHP 8)</span>
       </div>
 
       <div className="chat-messages">
@@ -74,7 +77,7 @@ export default function ChatTab() {
       <div style={{ display: 'flex', gap: '0.5rem', padding: '0.5rem 1.5rem', overflowX: 'auto' }}>
         {presets.map((preset, idx) => (
           <button key={idx} className="chip" onClick={() => handleSend(preset)}>
-            {preset.slice(0, 32)}...
+            {preset.slice(0, 36)}...
           </button>
         ))}
       </div>
@@ -84,7 +87,7 @@ export default function ChatTab() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask your SAP functional question..."
+          placeholder="Ask your SAP functional question (e.g. SPRO path for VKOA, OBYC transaction keys)..."
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           style={{ flex: 1 }}
         />
