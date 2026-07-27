@@ -1,15 +1,24 @@
 const express = require('express');
 const router = express.Router();
+const { searchVectorKnowledge } = require('../../api/rag/vectorSearch.js');
 
-// 1. AI Knowledge Assistant Chat API (Friendly Tone)
+// 1. AI Knowledge Assistant Chat API (Vector RAG Integrated)
 router.post('/chat', async (req, res) => {
   const { question } = req.body;
   if (!question) return res.status(400).json({ error: 'Question is required' });
+
+  // Vector RAG Retrieval
+  const retrievedChunks = searchVectorKnowledge(question, 2);
+  const ragContextText = retrievedChunks.map((c) => `[Category: ${c.category} | T-Codes: ${c.tcodes.join(', ')}]\n${c.content}`).join('\n\n');
 
   const openRouterKey = process.env.OPENROUTER_API_KEY;
 
   if (openRouterKey) {
     try {
+      const systemPrompt = `You are a friendly, warm, encouraging Senior SAP Lead Functional Consultant Copilot! Ground your answers in official SAP knowledge using Vector RAG.
+${ragContextText ? `RETRIEVED VECTOR SAP KNOWLEDGE CONTEXT:\n${ragContextText}\n\n` : ''}
+Provide exact SPRO paths, T-Codes, tables, and accounting keys.`;
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -21,10 +30,7 @@ router.post('/chat', async (req, res) => {
         body: JSON.stringify({
           model: "google/gemini-2.5-flash",
           messages: [
-            {
-              role: "system",
-              content: `You are a friendly, warm, encouraging Senior SAP Lead Functional Consultant Copilot! Respond warmly, simplify complex SAP topics, and provide exact SPRO paths, T-Codes, and table details.`
-            },
+            { role: "system", content: systemPrompt },
             { role: "user", content: question }
           ]
         })
@@ -42,7 +48,12 @@ router.post('/chat', async (req, res) => {
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/`([^`]+)`/g, '<code>$1</code>')
             .replace(/\n/g, '<br>');
-          return res.json({ answer: formatted, timestamp: new Date().toISOString() });
+          return res.json({
+            answer: formatted,
+            ragRetrieved: retrievedChunks.length > 0,
+            retrievedCount: retrievedChunks.length,
+            timestamp: new Date().toISOString()
+          });
         }
       }
     } catch (err) {
@@ -54,18 +65,20 @@ router.post('/chat', async (req, res) => {
   let response = '';
 
   if (q === 'hi' || q === 'hello' || q === 'hey' || q.includes('who are you')) {
-    response = `👋 <strong>Hello there! Great to meet you!</strong> 😊<br><br>I am your friendly <strong>SAP FICO & SD Copilot</strong>. I'm here to help you navigate SPRO customizing, resolve error codes, simulate VKOA/OBYC account determination, or generate RICEF specs!<br><br>How can I assist you today? 😊`;
-  } else if (q.includes('vkoa') || q.includes('revenue')) {
-    response = `<strong>🔄 SD-FI Account Determination (VKOA):</strong><br>Nav Path: <code>SPRO -> Sales & Distribution -> Basic Functions -> Account Assignment -> Revenue Account Determination -> Assign G/L Accounts</code><br>Key Parameters: Application V, Chart of Accounts, Sales Org, Cust. Acct Grp, Mat. Acct Grp, Account Key (ERL/ERS). 😊`;
-  } else if (q.includes('obyc') || q.includes('goods receipt') || q.includes('bsx')) {
-    response = `<strong>📦 MM-FI Account Determination (OBYC):</strong><br>Key Posting Transactions: <code>BSX</code> (Inventory Posting), <code>WRX</code> (GR/IR Clearing Account), <code>GBB</code> (Inventory Offsetting/COGS). 😊`;
-  } else if (q.includes('ob52') || q.includes('period')) {
-    response = `<strong>⚠️ OB52 Posting Period Error:</strong><br>Run T-Code <strong>OB52</strong>, locate your Posting Period Variant, update From Period 1 to current period (e.g. 07/2026), and verify account types '+' and 'S' are open. 😊`;
+    response = `👋 <strong>Hello there! Great to meet you!</strong> 😊<br><br>I am your friendly <strong>SAP FICO & SD Copilot</strong> grounded by Vector RAG. How can I assist you today? 😊`;
+  } else if (retrievedChunks.length > 0) {
+    const topChunk = retrievedChunks[0];
+    response = `🔍 <strong>Vector RAG Grounded Answer [${topChunk.category}]:</strong><br><br>${topChunk.content.replace(/\n/g, '<br>')}<br><br>Feel free to ask a follow-up question! 😊`;
   } else {
     response = `<strong>💡 SAP Copilot Response:</strong><br>For your query <em>"${question}"</em>, explore core T-Codes: <strong>FS00</strong> (GL Master), <strong>FB50</strong> (GL Postings), <strong>VKOA</strong> (SD Revenue), <strong>OBYC</strong> (MM Postings)! 😊`;
   }
 
-  res.json({ answer: response, timestamp: new Date().toISOString() });
+  res.json({
+    answer: response,
+    ragRetrieved: retrievedChunks.length > 0,
+    retrievedCount: retrievedChunks.length,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 2. FI-SD VKOA Simulator API

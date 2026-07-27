@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { sendChatMessage } from '../services/api';
-import { Send, Sparkles, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Send, Sparkles, Mic, MicOff, Volume2, VolumeX, Database } from 'lucide-react';
 
 export default function ChatTab() {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: `👋 <strong>Welcome Functional Consultant!</strong> I am your SAP S/4HANA & ECC 6.0 Enterprise Copilot.<br><br>Ask me anything about <strong>SPRO customizing</strong>, <strong>VKOA SD-FI revenue account determination</strong>, <strong>OBYC MM account determination</strong>, <strong>SAP production errors (OB52, F5 063, M8 008)</strong>, or <strong>ACDOCA Universal Journal tables & HANA SQL</strong>.`
+      text: `👋 <strong>Welcome Functional Consultant!</strong> I am your Vector RAG Grounded SAP S/4HANA & ECC 6.0 Enterprise Copilot.<br><br>Ask me anything about <strong>SPRO customizing</strong>, <strong>VKOA SD-FI revenue account determination</strong>, <strong>OBYC MM account determination</strong>, <strong>SAP production errors (OB52, F5 063, M8 008)</strong>, or <strong>ACDOCA Universal Journal tables & HANA SQL</strong>.`
     }
   ]);
   const [input, setInput] = useState('');
@@ -86,7 +86,6 @@ export default function ChatTab() {
     }
 
     window.speechSynthesis.cancel();
-    // Strip HTML tags for clean text-to-speech
     const cleanText = text.replace(/<[^>]*>?/gm, '');
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.rate = 1.0;
@@ -114,7 +113,10 @@ export default function ChatTab() {
 
     try {
       const res = await sendChatMessage(q);
-      setMessages((prev) => [...prev, { sender: 'bot', text: res.answer }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'bot', text: res.answer, ragRetrieved: res.ragRetrieved }
+      ]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -138,7 +140,7 @@ export default function ChatTab() {
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <Sparkles size={18} style={{ color: 'var(--color-cyan)' }} />
-          <h3 style={{ fontSize: '1.05rem', color: 'var(--color-cyan)' }}>AI Voice & Text SAP Assistant</h3>
+          <h3 style={{ fontSize: '1.05rem', color: 'var(--color-cyan)' }}>AI Vector RAG Grounded SAP Assistant</h3>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {isListening && (
@@ -146,7 +148,7 @@ export default function ChatTab() {
               🎙️ Listening...
             </span>
           )}
-          <span className="badge badge-cyan">S/4HANA 2023 & ECC 6.0</span>
+          <span className="badge badge-emerald">🔍 Vector RAG Engine Active</span>
         </div>
       </div>
 
@@ -158,23 +160,29 @@ export default function ChatTab() {
               dangerouslySetInnerHTML={{ __html: msg.text }}
             />
             {msg.sender === 'bot' && (
-              <button
-                onClick={() => handleSpeechOutput(msg.text, idx)}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: speakingIdx === idx ? 'var(--color-cyan)' : 'var(--text-muted)',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem',
-                  marginLeft: '0.5rem'
-                }}
-              >
-                {speakingIdx === idx ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                <span>{speakingIdx === idx ? 'Stop Speaking' : 'Read Aloud'}</span>
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', marginLeft: '0.5rem' }}>
+                {msg.ragRetrieved && (
+                  <span className="badge badge-cyan" style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem' }}>
+                    <Database size={10} style={{ marginRight: '0.2rem' }} /> Grounded by Vector RAG
+                  </span>
+                )}
+                <button
+                  onClick={() => handleSpeechOutput(msg.text, idx)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: speakingIdx === idx ? 'var(--color-cyan)' : 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem'
+                  }}
+                >
+                  {speakingIdx === idx ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  <span>{speakingIdx === idx ? 'Stop' : 'Read Aloud'}</span>
+                </button>
+              </div>
             )}
           </div>
         ))}
@@ -207,7 +215,7 @@ export default function ChatTab() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder={isListening ? 'Listening... Speak your SAP question now' : 'Ask or speak your SAP question (e.g. SPRO path for VKOA, OBYC transaction keys)...'}
+          placeholder={isListening ? 'Listening... Speak your SAP question now' : 'Ask or speak your SAP question (Vector RAG grounded)...'}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           style={{ flex: 1 }}
         />
